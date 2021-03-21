@@ -5,14 +5,14 @@ import java.io.Serializable;
 import java.net.Socket;
 import java.util.function.Consumer;
 
-public class ClientThread extends Thread {
+public class Client extends Thread {
 	Socket clientSocket;
 	ObjectOutputStream output;
 	ObjectInputStream input;
 	private Consumer<Serializable> callback;
 	int port;
 	
-	ClientThread(Consumer<Serializable> call, int startPort) {
+	Client(Consumer<Serializable> call, int startPort) {
 		this.callback = call;
 		this.port = startPort;
 	}
