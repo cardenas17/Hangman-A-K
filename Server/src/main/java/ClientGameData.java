@@ -15,15 +15,17 @@ public class ClientGameData {
 		public int totalAttempts;
 		public int charAttempts;
 		public int wordAttempts;
-		public String currWord;
+		public String completeWord;
 		public String partialWord;
 		
 		Category(String n, ArrayList<String> l){
 			isComplete = false;
 			name = n;
 			list = l;
-			totalAttempts = charAttempts = wordAttempts = 0;
-			currWord = "";
+			totalAttempts = 3;
+			charAttempts = 6;
+			wordAttempts = 3;
+			completeWord = "";
 			partialWord = "";
 		}
 
@@ -75,22 +77,23 @@ public class ClientGameData {
 		if(listMap.get(currentCat).list.size() == 0) {
 			return false;
 		}
-		listMap.get(currentCat).currWord = listMap.get(currentCat).list.get(0);
+		listMap.get(currentCat).completeWord = listMap.get(currentCat).list.get(0);
 		listMap.get(currentCat).list.remove(0);
-		listMap.get(currentCat).partialWord = returnEmptyWord(listMap.get(currentCat).currWord.length());
+		listMap.get(currentCat).partialWord = returnEmptyWord(listMap.get(currentCat).completeWord.length());
 		return true;
 	}
 	
 	public boolean checkWord(String checkWord) {
-		if(checkWord == listMap.get(currentCat).currWord) {
+		if(checkWord == listMap.get(currentCat).completeWord) {
 			listMap.get(currentCat).isComplete = true;
+			listMap.get(currentCat).partialWord = listMap.get(currentCat).completeWord;
 			return true;
 		}
 		else {
-			listMap.get(currentCat).wordAttempts++;
+			listMap.get(currentCat).wordAttempts--;
 			
-			if (listMap.get(currentCat).wordAttempts == 3) {
-				listMap.get(currentCat).totalAttempts++;
+			if (listMap.get(currentCat).wordAttempts == 0) {
+				listMap.get(currentCat).totalAttempts--;
 			}
 			return false;
 		}
@@ -98,8 +101,8 @@ public class ClientGameData {
 	
 	public boolean checkCharacter(char letter) {
 		String temp = "";
-		for (int i = 0; i < listMap.get(currentCat).currWord.length(); i++){
-		    char c = listMap.get(currentCat).currWord.charAt(i);
+		for (int i = 0; i < listMap.get(currentCat).completeWord.length(); i++){
+		    char c = listMap.get(currentCat).completeWord.charAt(i);
 		    if (c == letter) {
 		    	temp += c;
 		    }
@@ -108,8 +111,12 @@ public class ClientGameData {
 		    }
 		}
 		
+		if (temp == listMap.get(currentCat).completeWord) {
+			listMap.get(currentCat).isComplete = true;
+		}
+		
 		if (temp == listMap.get(currentCat).partialWord) {
-			listMap.get(currentCat).charAttempts++;
+			listMap.get(currentCat).charAttempts--;
 			return false;
 		}
 		

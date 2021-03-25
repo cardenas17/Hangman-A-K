@@ -11,6 +11,7 @@ public class Client extends Thread {
 	ObjectInputStream input;
 	private Consumer<Serializable> callback;
 	int port;
+	SerializableWord guessData = new SerializableWord();
 	
 	Client(Consumer<Serializable> call, int startPort) {
 		this.callback = call;
@@ -24,16 +25,16 @@ public class Client extends Thread {
 			input = new ObjectInputStream(clientSocket.getInputStream());
 			clientSocket.setTcpNoDelay(true);
 		} catch (Exception e) {
-			
+			System.out.println("Client socket did not launch");
  		}
 		
-		while (true) {
-			try {
-				SerializableWord wordData = (SerializableWord) input.readObject();
-				callback.accept(wordData);
-			} catch (Exception t) {
-				
+		try {
+			while (true) {
+				SerializableWord message = (SerializableWord) input.readObject();
+				callback.accept(message);
 			}
+		} catch (Exception t) {
+			System.out.println("Client Connection failed");
 		}
 		
 	}
