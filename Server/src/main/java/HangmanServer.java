@@ -19,28 +19,23 @@ public class HangmanServer {
 		port = p;
 		server = new TheServer();
 		server.start();
-		System.out.println("Port = " + port);
 	}
 	
 	public class TheServer extends Thread{
 		
 		public void run() {
 			try(ServerSocket socket = new ServerSocket(port);){
-				System.out.println("Server is waiting for a client!");
+				callback.accept("Server is waiting for clients on Port: " + port);
 		  
 		    	while(true) {
-		
 					ClientThread c = new ClientThread(socket.accept(), count);
 					callback.accept("client has connected to server: " + "client #" + count);
-					System.out.println("client has connected to server: " + "client #" + count);
 					clients.add(c);
 					c.start();
-				
 					count++;
 			    }
 			} catch(Exception e) {
 				callback.accept("Server socket did not launch");
-				System.out.println("Server socket did not launch");
 			}
 		}
 	}
@@ -59,21 +54,23 @@ public class HangmanServer {
 			this.clientData = new ClientGameData();
 		}
 		
-		public SerializableWord updateData(ClientGameData gameData) {
-			SerializableWord updatedWord = new SerializableWord();
+		public SerializableWord updateData(ClientGameData gameData, SerializableWord oldWord) {
+			SerializableWord updatedWord = oldWord;
 			updatedWord.catChoice = gameData.currentCat;
 			
 			updatedWord.animalAttempts = gameData.listMap.get("animals").totalAttempts;
 			updatedWord.citiesAttempts = gameData.listMap.get("cities").totalAttempts;
 			updatedWord.foodAttempts = gameData.listMap.get("food").totalAttempts;
 			
+			updatedWord.isAnimalsDone = gameData.listMap.get("animals").isComplete;
+			updatedWord.isCitiesDone = gameData.listMap.get("cities").isComplete;
+			updatedWord.isFoodDone = gameData.listMap.get("food").isComplete;
+			
 			if (gameData.currentCat != "") {
 				updatedWord.serverWord = gameData.listMap.get(gameData.currentCat).partialWord;
-				
 				updatedWord.wordGuessesLeft = gameData.listMap.get(gameData.currentCat).wordAttempts;
 				updatedWord.letterGuessesLeft = gameData.listMap.get(gameData.currentCat).charAttempts;
 			}
-			
 			return updatedWord;
 		}
 		
@@ -81,7 +78,7 @@ public class HangmanServer {
 			try {
 				this.output.writeObject(data);
 			} catch (Exception e) {
-				
+				System.out.println("Fail to update the client!");
 			}
 		}
 		
@@ -91,38 +88,35 @@ public class HangmanServer {
 				output = new ObjectOutputStream(connection.getOutputStream());
 				connection.setTcpNoDelay(true);
 			} catch (Exception e) {
-				System.out.println("Stream not open");
+				callback.accept("Stream not open");
 			}
 			
 			while (true) {
 				try {
 					SerializableWord curData = (SerializableWord) input.readObject();
-					System.out.println("animalAttempts = " + curData.animalAttempts);
 					if (curData.isCatChoice) {
 						clientData.pickCategory(curData.catChoice);
-						curData.isCatChoice = false;
-						callback.accept("Client #" + this.count + "Category Choice is " + curData.catChoice);
+						callback.accept("Client #" + this.count + " Category Choice is " + curData.catChoice);
+						callback.accept("Client #" + this.count + " Currrent word to guess: " + clientData.listMap.get(curData.catChoice).completeWord);
 					}
 					else if (curData.isGuessLetter) {
 						clientData.checkCharacter(curData.guessLetter);
-						curData.isGuessLetter = false;
-						callback.accept("Client #" + this.count + "Guess Letter is " + curData.guessLetter);
+						callback.accept("Client #" + this.count + " Guess Letter is " + curData.guessLetter);
 					}
 					else if (curData.isGuessWord) {
 						clientData.checkWord(curData.guessWord);
-						curData.isGuessWord = false;
-						callback.accept("Client #" + this.count + "Guess Word is " + curData.guessWord);
+						callback.accept("Client #" + this.count + " Guess Word is " + curData.guessWord);
 					}
-					
-					curData = updateData(clientData);
+					curData = updateData(clientData, curData);
+					callback.accept("Client #" + this.count + " Progress on word: " + curData.serverWord);
 					updateClient(curData);
 				} catch (Exception e) {
 					callback.accept("OOOOPPs...Something wrong with the socket from client: " + count + "....closing down!");
-					System.out.println("OOOOPPs...Something wrong with the socket from client: " + count + "....closing down!");
 			    	clients.remove(this);
 			    	break;
 				}
 			}
-		}
+		}// end of run
+		
 	}
 }

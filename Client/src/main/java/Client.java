@@ -17,7 +17,7 @@ public class Client extends Thread {
 		this.callback = call;
 		this.port = startPort;
 	}
-	
+
 	public void run() {
 		try {
 			clientSocket = new Socket("127.0.0.1", port);
@@ -27,7 +27,6 @@ public class Client extends Thread {
 		} catch (Exception e) {
 			System.out.println("Client socket did not launch");
  		}
-		
 		try {
 			while (true) {
 				SerializableWord message = (SerializableWord) input.readObject();
@@ -38,7 +37,7 @@ public class Client extends Thread {
 		}
 		
 	}
-	
+
 	public void send(SerializableWord data) {
 		try {
 			output.writeObject(data);

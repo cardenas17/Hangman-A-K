@@ -9,6 +9,10 @@ public class SerializableWord implements Serializable {
 	public int citiesAttempts;
 	public int foodAttempts;
 	
+	public boolean isAnimalsDone;
+	public boolean isCitiesDone;
+	public boolean isFoodDone;
+	
 	public String serverWord;	// partial word that server sends back
 	
 	public char guessLetter;	// client guess letter
@@ -22,4 +26,13 @@ public class SerializableWord implements Serializable {
 	public boolean isGuessWord;
 	
 	public boolean isReplay;
+	
+	public SerializableWord() {
+		catChoice = "";
+		animalAttempts = citiesAttempts = foodAttempts = 3;
+		serverWord = guessWord = "";
+		guessLetter = '\0';
+		isCatChoice = isGuessLetter = isGuessWord = isReplay = false;
+		isAnimalsDone = isCitiesDone = isFoodDone = false;
+	}
 }

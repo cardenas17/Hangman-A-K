@@ -16,11 +16,11 @@ class MyTest {
 	void testCGD_Constructor() {
 		ClientGameData temp = new ClientGameData();
 		System.out.println(temp.listMap.get("food").list.toString());
-		System.out.println(temp.listMap.get("food").currWord.toString());
+		System.out.println(temp.listMap.get("food").completeWord.toString());
 		System.out.println(temp.listMap.get("cities").list.toString());
-		System.out.println(temp.listMap.get("cities").currWord.toString());
+		System.out.println(temp.listMap.get("cities").completeWord.toString());
 		System.out.println(temp.listMap.get("animals").list.toString());
-		System.out.println(temp.listMap.get("animals").currWord.toString());
+		System.out.println(temp.listMap.get("animals").completeWord.toString());
 	}
 	
 

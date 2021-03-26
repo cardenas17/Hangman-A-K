@@ -28,21 +28,20 @@ public class ClientGameData {
 			completeWord = "";
 			partialWord = "";
 		}
-
 	}
 	
 	public String currentCat;
 	public HashMap<String, Category> listMap;
 	public static final ArrayList<String> foodList = new ArrayList<>(Arrays.asList("tacos", "noodles", "burger", "curry", "fries", "apple", "bread"));
-	public static final ArrayList<String> citiesList =new ArrayList<>(Arrays.asList("chicago", "mumbai", "guadalajara", "paris", "moscow", "tokyo", "vancouver"));
-	public static final ArrayList<String> animalsList =new ArrayList<>(Arrays.asList("lion", "deer", "tiger", "monkey", "turtle", "parrot", "dolphin"));
+	public static final ArrayList<String> citiesList = new ArrayList<>(Arrays.asList("chicago", "mumbai", "guadalajara", "paris", "moscow", "tokyo", "vancouver"));
+	public static final ArrayList<String> animalsList = new ArrayList<>(Arrays.asList("lion", "deer", "tiger", "monkey", "turtle", "parrot", "dolphin"));
 	
 	private ArrayList<String> pickWords(ArrayList<String> typeList) {
 		ArrayList<String> returnList = new ArrayList<String>();
 		Set<Integer> usedInts = new HashSet<Integer>();
 		Random rand = new Random();
 		while(usedInts.size() != 3) {
-			int rand_int = rand.nextInt(7);
+			int rand_int = rand.nextInt(foodList.size()); 
 			if(!usedInts.contains(rand_int)) {
 				usedInts.add(rand_int);
 				returnList.add(typeList.get(rand_int));
@@ -65,9 +64,8 @@ public class ClientGameData {
 	
 	private String returnEmptyWord(int size) {
 		String temp = "";
-		while (size != 0) {
+		for (int i = 0; i < size; i++) {
 			temp += "-";
-			size--;
 		}
 		return temp;
 	}
@@ -80,21 +78,17 @@ public class ClientGameData {
 		listMap.get(currentCat).completeWord = listMap.get(currentCat).list.get(0);
 		listMap.get(currentCat).list.remove(0);
 		listMap.get(currentCat).partialWord = returnEmptyWord(listMap.get(currentCat).completeWord.length());
+		listMap.get(currentCat).totalAttempts--;
 		return true;
 	}
 	
 	public boolean checkWord(String checkWord) {
-		if(checkWord == listMap.get(currentCat).completeWord) {
+		if(checkWord.equals(listMap.get(currentCat).completeWord)) {
 			listMap.get(currentCat).isComplete = true;
 			listMap.get(currentCat).partialWord = listMap.get(currentCat).completeWord;
 			return true;
-		}
-		else {
+		} else {
 			listMap.get(currentCat).wordAttempts--;
-			
-			if (listMap.get(currentCat).wordAttempts == 0) {
-				listMap.get(currentCat).totalAttempts--;
-			}
 			return false;
 		}
 	}
@@ -105,26 +99,18 @@ public class ClientGameData {
 		    char c = listMap.get(currentCat).completeWord.charAt(i);
 		    if (c == letter) {
 		    	temp += c;
-		    }
-		    else {
+		    } else {
 		    	temp += listMap.get(currentCat).partialWord.charAt(i);
 		    }
 		}
-		
-		if (temp == listMap.get(currentCat).completeWord) {
-			listMap.get(currentCat).isComplete = true;
-		}
-		
-		if (temp == listMap.get(currentCat).partialWord) {
+		if (temp.equals(listMap.get(currentCat).partialWord)) {
 			listMap.get(currentCat).charAttempts--;
 			return false;
 		}
-		
+		if (temp.equals(listMap.get(currentCat).completeWord)) {
+			listMap.get(currentCat).isComplete = true;
+		}
 		listMap.get(currentCat).partialWord = temp;
 		return true;
 	}
-	
-	
-	
-	
 }

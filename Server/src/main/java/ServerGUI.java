@@ -1,14 +1,32 @@
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 public class ServerGUI extends Application {
 	HangmanServer serverConnection;
@@ -20,11 +38,16 @@ public class ServerGUI extends Application {
 		launch(args);
 	}
 
-	//feel free to remove the starter code from this method
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		ourStage = primaryStage;
-		// TODO Auto-generated method stub
+		ourStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent t) {
+                Platform.exit();
+                System.exit(0);
+            }
+        });
 		ourStage.setTitle("Welcome to Hangman Server");
 		
 		ourStage.setScene(welcomeScene());
@@ -32,8 +55,33 @@ public class ServerGUI extends Application {
 	}
 	
 	public Scene welcomeScene () {
+		TextField prompt = new TextField("Enter Port: ");
+		prompt.setEditable(false);
+		prompt.setAlignment(Pos.CENTER);
+		prompt.setPrefWidth(80);
+		prompt.setStyle("-fx-background-color: white;");
 		TextField portInput = new TextField();
-		Button enter = new Button("Enter");
+		Button enter = new Button("Connect");
+		Button instructions = new Button("Confused?");
+		instructions.setOnAction(e-> {
+				// creates a new Dialog box for displaying instructions
+				Dialog<String> directions = new Dialog<String>();
+				directions.setTitle("How to Login");
+				directions.setResizable(true);
+				directions.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+				directions.getDialogPane().setMinWidth(500.0);
+				
+				// instructions for playing the game
+				directions.setContentText("Enter the port that you want your clients to connect.\n Eg: '5555' or '5556' ");
+				
+				// Button to close the dialog box
+				ButtonType ok = new ButtonType("OK", ButtonData.OK_DONE);
+				directions.getDialogPane().getButtonTypes().add(ok);
+				
+				// display dialog box
+				directions.showAndWait();
+			}
+		);
 		
 		enter.setOnAction(e-> {
 			ourStage.setScene(ServerLogScene());
@@ -45,26 +93,42 @@ public class ServerGUI extends Application {
 			}, Integer.parseInt(portInput.getText()));
 		});
 		
-		HBox input = new HBox(portInput, enter);
-//		input.getChildren().addAll(portInput, enter);
+		HBox instr = new HBox(instructions);
+		instr.setAlignment(Pos.CENTER);
+		HBox input = new HBox(prompt, portInput, enter);
+		input.setAlignment(Pos.CENTER);
+		VBox nodes = new VBox(input, instr);
+		nodes.setAlignment(Pos.CENTER);
+		BorderPane bPane = new BorderPane(nodes);
+		Image image1 = new Image("matrix.jpg");
+		BackgroundSize bSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false);
 		
-		BorderPane bPane = new BorderPane(input);
-//		bPane.getChildren().add(input);
-//		bPane.setCenter(input);
-		
-		return new Scene(bPane, 500, 500);
+		bPane.setBackground(new Background(new BackgroundImage(image1,
+	            BackgroundRepeat.NO_REPEAT,
+	            BackgroundRepeat.NO_REPEAT,
+	            BackgroundPosition.CENTER,
+	            bSize)));
+		return new Scene(bPane, 480, 270);
 	}
 	
 	public Scene ServerLogScene () {
 		log = new ListView<String>();
-		
+		log.setPrefWidth(768);
+		log.setPrefHeight(432);
 		VBox logBox = new VBox(log);
-//		logBox.getChildren().add(log);
+		logBox.setAlignment(Pos.CENTER);
+		HBox node = new HBox(logBox);
+		node.setAlignment(Pos.CENTER);
+		BorderPane bPane2 = new BorderPane(node);
 		
-		BorderPane bPane2 = new BorderPane(logBox);
-//		bPane.getChildren().add(logBox);
-//		bPane.setCenter(logBox);
+		Image image1 = new Image("matrix.jpg");
+		BackgroundSize bSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false);
 		
-		return new Scene(bPane2, 500, 500);
+		bPane2.setBackground(new Background(new BackgroundImage(image1,
+	            BackgroundRepeat.NO_REPEAT,
+	            BackgroundRepeat.NO_REPEAT,
+	            BackgroundPosition.CENTER,
+	            bSize)));
+		return new Scene(bPane2, 960, 540);
 	}
 }
