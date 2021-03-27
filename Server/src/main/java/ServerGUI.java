@@ -1,4 +1,9 @@
-
+// Client GUI
+// 		Thread for connecting a server to client 
+// 		Uses Javafx for the GUI and Server for connection to client
+// Angel Cardenas		651018873		acarde36
+// Kartik Maheshwari	665023848		kmahes5
+//
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -29,18 +34,18 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 public class ServerGUI extends Application {
-	HangmanServer serverConnection;
-	Stage ourStage;
-	ListView<String> log;
+	HangmanServer serverConnection;			// server object
+	Stage ourStage;							// server stage
+	ListView<String> log;					// Listview that holds all activities in the game
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		launch(args);
 	}
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		ourStage = primaryStage;
+		// for closing the window in the background after it's closed
 		ourStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent t) {
@@ -49,12 +54,13 @@ public class ServerGUI extends Application {
             }
         });
 		ourStage.setTitle("Welcome to Hangman Server");
-		
 		ourStage.setScene(welcomeScene());
 		ourStage.show();
 	}
 	
+	/*returns the welcome screen with predetermined settings*/
 	public Scene welcomeScene () {
+		// Creating and grouping Javafx components in an orderly manner
 		TextField prompt = new TextField("Enter Port: ");
 		prompt.setEditable(false);
 		prompt.setAlignment(Pos.CENTER);
@@ -88,11 +94,13 @@ public class ServerGUI extends Application {
 			ourStage.setTitle("Hangman Server Log");
 			serverConnection = new HangmanServer(data->{
 				Platform.runLater(()->{
+					// populates the list view
 					log.getItems().add(data.toString());
 				});
 			}, Integer.parseInt(portInput.getText()));
 		});
 		
+		// Creating and grouping Javafx components in an orderly manner
 		HBox instr = new HBox(instructions);
 		instr.setAlignment(Pos.CENTER);
 		HBox input = new HBox(prompt, portInput, enter);
@@ -100,9 +108,10 @@ public class ServerGUI extends Application {
 		VBox nodes = new VBox(input, instr);
 		nodes.setAlignment(Pos.CENTER);
 		BorderPane bPane = new BorderPane(nodes);
+		
+		// set background as matrix.jpg
 		Image image1 = new Image("matrix.jpg");
 		BackgroundSize bSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false);
-		
 		bPane.setBackground(new Background(new BackgroundImage(image1,
 	            BackgroundRepeat.NO_REPEAT,
 	            BackgroundRepeat.NO_REPEAT,
@@ -111,7 +120,9 @@ public class ServerGUI extends Application {
 		return new Scene(bPane, 480, 270);
 	}
 	
+	/*returns the server log screen with predetermined settings*/
 	public Scene ServerLogScene () {
+		// Creating and grouping Javafx components in an orderly manner
 		log = new ListView<String>();
 		log.setPrefWidth(768);
 		log.setPrefHeight(432);
@@ -121,9 +132,9 @@ public class ServerGUI extends Application {
 		node.setAlignment(Pos.CENTER);
 		BorderPane bPane2 = new BorderPane(node);
 		
+		// set background as matrix.jpg
 		Image image1 = new Image("matrix.jpg");
 		BackgroundSize bSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false);
-		
 		bPane2.setBackground(new Background(new BackgroundImage(image1,
 	            BackgroundRepeat.NO_REPEAT,
 	            BackgroundRepeat.NO_REPEAT,

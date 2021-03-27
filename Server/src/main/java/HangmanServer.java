@@ -1,3 +1,9 @@
+// HangmanServer
+// 		Main content of the server goes here
+// Angel Cardenas		651018873		acarde36
+// Kartik Maheshwari	665023848		kmahes5
+//
+
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -7,26 +13,26 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class HangmanServer {
-	int count = 1;
-	int port;
-	ArrayList<ClientThread> clients = new ArrayList<ClientThread>();
-	ServerSocket socket;
-	private Consumer<Serializable> callback;
-	TheServer server;
+	int count = 1;		// counter that keeps track of number of client connected to the server
+	int port;			// port number that the server is listening to
+	ArrayList<ClientThread> clients = new ArrayList<ClientThread>();		// list of all the client threads
+	ServerSocket socket;													// server socket to connect
+	private Consumer<Serializable> callback;								// implemented for functional programming
+	TheServer server;														// thread object 
 	
+	/*Constructor that sets the fields to default*/
 	public HangmanServer(Consumer<Serializable> call, int p) {
 		callback = call;
 		port = p;
 		server = new TheServer();
-		server.start();
+		server.start();		// calls the run from TheServer
 	}
 	
+	/*Nested server thread*/
 	public class TheServer extends Thread{
-		
 		public void run() {
 			try(ServerSocket socket = new ServerSocket(port);){
 				callback.accept("Server is waiting for clients on Port: " + port);
-		  
 		    	while(true) {
 					ClientThread c = new ClientThread(socket.accept(), count);
 					callback.accept("client has connected to server: " + "client #" + count);
@@ -40,7 +46,7 @@ public class HangmanServer {
 		}
 	}
 
-	
+	/*Nested client thread*/
 	public class ClientThread extends Thread {
 		Socket connection;
 		int count;
@@ -133,7 +139,7 @@ public class HangmanServer {
 			    	break;
 				}
 			}
-		}// end of run
+		}  // end of run
 		
 	}
 }

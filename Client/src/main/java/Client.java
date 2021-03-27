@@ -13,18 +13,20 @@ import java.net.Socket;
 import java.util.function.Consumer;
 
 public class Client extends Thread {
-	Socket clientSocket;
-	ObjectOutputStream output;
-	ObjectInputStream input;
-	private Consumer<Serializable> callback;
-	int port;
-	SerializableWord guessData = new SerializableWord();
+	Socket clientSocket;	// socket for client
+	ObjectOutputStream output;	// for writing objects that could be read by inputStream
+	ObjectInputStream input;	// for reading objects that could be written by the outputStream 
+	private Consumer<Serializable> callback;	// implemented for functional programming
+	int port;	// holds user input port
+	SerializableWord guessData = new SerializableWord();	// initialization of the serializable object
 	
+	/*Constructor for setting the fields to default*/
 	Client(Consumer<Serializable> call, int startPort) {
 		this.callback = call;
 		this.port = startPort;
 	}
-
+	
+	/*Sets up the connection between the client and server*/
 	public void run() {
 		try {
 			clientSocket = new Socket("127.0.0.1", port);
@@ -47,7 +49,8 @@ public class Client extends Thread {
 		}
 		
 	}
-
+	
+	/*function that sends a serializable object to the server from the client to communicate*/
 	public void send(SerializableWord data) {
 		try {
 			output.writeObject(data);

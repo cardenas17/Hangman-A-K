@@ -1,3 +1,11 @@
+// ClientGameData
+// 		An Object where all the aspects of the game are
+//		being kept for the client and server to communicate
+//		All the game logic goes here
+// Angel Cardenas		651018873		acarde36
+// Kartik Maheshwari	665023848		kmahes5
+//
+
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,15 +17,16 @@ import java.util.Random;
 public class ClientGameData {
 	
 	public class Category {
-		public boolean isComplete;
-		public String name;
-		public ArrayList<String> list;
-		public int totalAttempts;
-		public int charAttempts;
-		public int wordAttempts;
-		public String completeWord;
-		public String partialWord;
+		public boolean isComplete;		// flag if a category is completed
+		public String name;				// name of the category
+		public ArrayList<String> list;	// three word list, one for each possible try
+		public int totalAttempts;		// total attempts left for the category
+		public int charAttempts;		// total letter attempts for a word
+		public int wordAttempts;		// total word attempts for a word
+		public String completeWord;		// the word that the client have to guess
+		public String partialWord;		// Partially guessed word by the client 
 		
+		/*Constructor that sets all the fields to default*/
 		Category(String n, ArrayList<String> l){
 			isComplete = false;
 			name = n;
@@ -30,12 +39,17 @@ public class ClientGameData {
 		}
 	}
 	
-	public String currentCat;
-	public HashMap<String, Category> listMap;
-	public static final ArrayList<String> foodList = new ArrayList<>(Arrays.asList("tacos", "noodles", "burger", "curry", "fries", "apple", "bread"));
-	public static final ArrayList<String> citiesList = new ArrayList<>(Arrays.asList("chicago", "mumbai", "guadalajara", "paris", "moscow", "tokyo", "vancouver"));
-	public static final ArrayList<String> animalsList = new ArrayList<>(Arrays.asList("lion", "deer", "tiger", "monkey", "turtle", "parrot", "dolphin"));
+	public String currentCat;						// category that the user picks
+	public HashMap<String, Category> listMap;		// Hashmap with all the categories and their list of words.
+	// List of all the possible words that a client could get in game
+	public static final ArrayList<String> foodList = new ArrayList<>(Arrays.asList("tacos", "noodles", "burger", "curry", "fries", "apple", "bread", 
+			"popcorn", "poutine", "pho", "fajitas", "lasagna", "croissant", "kebab", "donut", "sushi", "chocolate", "cornbread", "meatloaf", "waffles"));
+	public static final ArrayList<String> citiesList = new ArrayList<>(Arrays.asList("chicago", "mumbai", "guadalajara", "paris", "moscow", "tokyo", "vancouver",
+			"london", "istanbul", "sydney", "berlin", "shanghai", "beijing", "barcelona", "amsterdam", "osaka", "miami", "bangkok", "dubai", "boston"));
+	public static final ArrayList<String> animalsList = new ArrayList<>(Arrays.asList("lion", "deer", "tiger", "monkey", "turtle", "parrot", "dolphin",
+			"gorilla", "elephant", "whale", "panda", "frog", "bear", "giraffe", "horse", "rabbit", "buffalo", "penguins", "otter", "sloth"));
 	
+	/*Helper function that picks three words at random from the list above and return the list with three words*/
 	private ArrayList<String> pickWords(ArrayList<String> typeList) {
 		ArrayList<String> returnList = new ArrayList<String>();
 		Set<Integer> usedInts = new HashSet<Integer>();
@@ -50,6 +64,7 @@ public class ClientGameData {
 		return returnList;
 	}
 	
+	/*Default constructor that sets the default values and populate hashmap*/
 	ClientGameData() {
 		currentCat = "";
 		Category food = new Category("food", pickWords(foodList));
@@ -62,6 +77,7 @@ public class ClientGameData {
 		listMap.put("animals", animals);
 	}
 	
+	/*Function that returns the empty word that needs to be guessed with all "-"*/
 	public String returnEmptyWord(int size) {
 		String temp = "";
 		for (int i = 0; i < size; i++) {
@@ -70,6 +86,7 @@ public class ClientGameData {
 		return temp;
 	}
 	
+	/*Function that gets called when a category is been picked by the client*/
 	public boolean pickCategory(String catName) {
 		currentCat = catName;
 		if(listMap.get(currentCat).list.size() == 0) {
@@ -84,7 +101,9 @@ public class ClientGameData {
 		return true;
 	}
 	
+	/*Function that compares the client guessed word with the actual current word and determines if they are the same*/
 	public boolean checkWord(String checkWord) {
+		// setting up the flags accordingly
 		if(checkWord.equals(listMap.get(currentCat).completeWord)) {
 			listMap.get(currentCat).isComplete = true;
 			listMap.get(currentCat).partialWord = listMap.get(currentCat).completeWord;
@@ -95,6 +114,7 @@ public class ClientGameData {
 		}
 	}
 	
+	/*Function that finds the character that the client guessed and checks if exists in the current word that is to be guessed*/
 	public boolean checkCharacter(char letter) {
 		String temp = "";
 		for (int i = 0; i < listMap.get(currentCat).completeWord.length(); i++){
@@ -105,6 +125,7 @@ public class ClientGameData {
 		    	temp += listMap.get(currentCat).partialWord.charAt(i);
 		    }
 		}
+		// setting up the flags accordingly
 		if (temp.equals(listMap.get(currentCat).partialWord)) {
 			listMap.get(currentCat).charAttempts--;
 			return false;
@@ -116,6 +137,7 @@ public class ClientGameData {
 		return true;
 	}
 	
+	/*Getter that gets the current word that is to be guessed*/
 	public String getWordToGuess() {
 		if (currentCat.equals("")) {
 			return "";

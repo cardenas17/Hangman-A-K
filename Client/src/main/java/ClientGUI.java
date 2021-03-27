@@ -35,24 +35,24 @@ import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
 public class ClientGUI extends Application {
-	Stage ourStage;
-	Client clientConnection;
-	int count = 0;
-	Button animalsButton, citiesButton, foodButton, submitLetter, submitWord;
-	Text animalsTries, citiesTries, foodTries, wordToGuess, letterGuessLeft, wordGuessLeft;
-	TextField guessLetter, guessWord;
-	PauseTransition pause;
+	Client clientConnection;	// initializing a client thread
+	int count = 0;				// counter of the # of clients on the server
+	// Javafx nodes
+	Stage ourStage;				// hold current stage to be displayed
+	Button animalsButton, citiesButton, foodButton, submitLetter, submitWord;					// all the buttons on the client game screen
+	Text animalsTries, citiesTries, foodTries, wordToGuess, letterGuessLeft, wordGuessLeft;		// all the text on the client game screen
+	TextField guessLetter, guessWord;		// all the text boxes on the client game screen.
+	PauseTransition pause;					// initialized for having a pause after each lose/win
 	
 	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		launch(args);
 	}
 
-	//feel free to remove the starter code from this method
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		ourStage = primaryStage;
+		// for closing the window in the background after it's closed
 		ourStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent t) {
@@ -68,7 +68,9 @@ public class ClientGUI extends Application {
 		pause = new PauseTransition(Duration.seconds(3));
 	}
 	
+	/*returns the welcome screen with predetermined settings*/
 	public Scene welcomeScene() {
+		// initializing all the Javafx components on the welcome screen.
 		TextField portInput = new TextField();
 		portInput.setFont(Font.font(25));
 		Button enter = new Button("Login");
@@ -78,12 +80,12 @@ public class ClientGUI extends Application {
 		namesBox.setPadding(new Insets(10,10,10,0)); 
 		namesBox.setAlignment(Pos.CENTER);
 		names.setFont(Font.font("SanSerif", 20));
-		
 		Text direction = new Text("Enter Port: ");
 		direction.setFont(Font.font(30));
 		Button instructions = new Button("Confused?");
 		instructions.setAlignment(Pos.CENTER);
 		
+		// working of the dialog box
 		instructions.setOnAction(e-> {
 				// creates a new Dialog box for displaying instructions
 				Dialog<String> directions = new Dialog<String>();
@@ -104,41 +106,50 @@ public class ClientGUI extends Application {
 			}
 		);
 		
+		// when login is pressed on welcome screen
+		// After the login is pressed we wait to set the flags in serializable object
 		enter.setOnAction(e-> {
 			ourStage.setTitle("Hangman Game");
 			clientConnection = new Client(data->{
 				Platform.runLater(()->{
 					clientConnection.guessData = (SerializableWord) data;
+					// when client inputs an incorrect port number
 					if (clientConnection.guessData.isConnectionFail) {
 						ourStage.setScene(connectionFailScene());
 					}
-					// Add parse messages here
+					// when client picks a category
 					if (clientConnection.guessData.isCatChoice) {
 						wordToGuess.setText(clientConnection.guessData.serverWord);
 						submitLetter.setDisable(false);
 						submitWord.setDisable(false);
 						clientConnection.guessData.isCatChoice = false;
 					}
+					// when client guesses a letter
 					else if (clientConnection.guessData.isGuessLetter) {
 						wordToGuess.setText(clientConnection.guessData.serverWord);
 						clientConnection.guessData.isGuessLetter = false;
 						letterGuessLeft.setText("Letter Guesses Left: " + clientConnection.guessData.letterGuessesLeft + "/6 \t");
+						// when client is out of letter guesses for the current word
 						if (clientConnection.guessData.letterGuessesLeft == 0) {
 							submitLetter.setDisable(true);
 						}
 					}
+					// when client guesses a word
 					else if (clientConnection.guessData.isGuessWord) {
 						wordToGuess.setText(clientConnection.guessData.serverWord);
 						wordGuessLeft.setText("Word Guesses Left: " + clientConnection.guessData.wordGuessesLeft + "/3");
 						clientConnection.guessData.isGuessWord = false;
+						// when client is out of word guesses for the current word
 						if (clientConnection.guessData.wordGuessesLeft == 0) {
 							submitWord.setDisable(true);
 						}
 					}
+					// when client is out of all the guesses, game gets "reset"
 					if (!containsDash(wordToGuess.getText())) {
 						pause.play();
 						ourStage.setScene(gameScene());
 					}
+					// when all three categories words are solved, we go to the win screen
 					if (clientConnection.guessData.isAnimalsDone &&
 							clientConnection.guessData.isCitiesDone&&
 							clientConnection.guessData.isFoodDone) {
@@ -146,10 +157,10 @@ public class ClientGUI extends Application {
 						pause.play();
 						ourStage.setScene(winScene());
 					}
+					// when client runs out of guesses for the current word
 					if (clientConnection.guessData.letterGuessesLeft == 0 && clientConnection.guessData.wordGuessesLeft == 0) {
-						// update cat attempts left text
-						// if zero cat attempts left then game over
-						int currentAttemptsLeft = 3;
+						// update category attempts left text
+						int currentAttemptsLeft = 3;	// counter for attempts for the current word.
 						if (clientConnection.guessData.catChoice.equals("animals")) {
 							currentAttemptsLeft = clientConnection.guessData.animalAttempts;
 							animalsTries.setText(currentAttemptsLeft +"/3");
@@ -162,7 +173,7 @@ public class ClientGUI extends Application {
 							currentAttemptsLeft = clientConnection.guessData.foodAttempts; 
 							foodTries.setText(currentAttemptsLeft +"/3");
 						}
-						
+						// if zero category attempts left then game over
 						if (currentAttemptsLeft == 0) {
 							pause.play();
 							ourStage.setScene(loseScene());
@@ -172,19 +183,21 @@ public class ClientGUI extends Application {
 						}
 					}
 				});
-			}, Integer.parseInt(portInput.getText()));
-			clientConnection.start();
-			ourStage.setScene(gameScene());
+			}, Integer.parseInt(portInput.getText()));		// end of line 113
+			clientConnection.start();			// after login is pressed a connection is established
+			ourStage.setScene(gameScene());		// the game scene is set
 		});
 		
+		// Creating and grouping Javafx components in an orderly manner
 		HBox input = new HBox(direction, portInput, enter);
 		input.setAlignment(Pos.CENTER);
 		VBox node = new VBox(input, namesBox, instructions);
 		node.setAlignment(Pos.CENTER);
 		BorderPane bPane = new BorderPane(node);
+		
+		// set background as welcome.png
 		Image image1 = new Image("welcome.png");
 		BackgroundSize bSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false);
-		
 		bPane.setBackground(new Background(new BackgroundImage(image1,
 	            BackgroundRepeat.NO_REPEAT,
 	            BackgroundRepeat.NO_REPEAT,
@@ -194,6 +207,7 @@ public class ClientGUI extends Application {
 		return new Scene(bPane, 730, 411);
 	}
 	
+	/*Helper function that checks if there are more characters left in the word to guess*/
 	public boolean containsDash(String s) {
 		for (int i = 0; i < s.length(); i++) {
 			int compare = Character.compare(s.charAt(i), '-');
@@ -204,10 +218,13 @@ public class ClientGUI extends Application {
 		return false;
 	}
 
+	/*returns the game screen with predetermined settings*/
 	public Scene gameScene() {
+		// checks the connection flag and accordingly changes the screen to fail connection.
 		if (clientConnection.guessData.isConnectionFail) {
 			return connectionFailScene();
 		}
+		// setting up category buttons
 		animalsButton = new Button("Animals");
 		animalsButton.setFont(Font.font(20));
 		citiesButton = new Button("Cities");
@@ -215,6 +232,8 @@ public class ClientGUI extends Application {
 		foodButton = new Button("Food");
 		foodButton.setFont(Font.font(20));
 		
+		// Disabling the button and changing the background color as per to the current game situation
+		// for animals
 		if (clientConnection.guessData.isAnimalsDone) {
 			animalsButton.setDisable(true);
 			animalsButton.setStyle("-fx-background-color: green;");
@@ -222,7 +241,7 @@ public class ClientGUI extends Application {
 			animalsButton.setDisable(false);
 			animalsButton.setStyle("-fx-background-color: red;");
 		}
-		
+		// for cities
 		if (clientConnection.guessData.isCitiesDone) {
 			citiesButton.setDisable(true);
 			citiesButton.setStyle("-fx-background-color: green;");
@@ -230,7 +249,7 @@ public class ClientGUI extends Application {
 			citiesButton.setDisable(false);
 			citiesButton.setStyle("-fx-background-color: red;");
 		}
-		
+		// for food
 		if (clientConnection.guessData.isFoodDone) {
 			foodButton.setDisable(true);
 			foodButton.setStyle("-fx-background-color: green;");
@@ -239,6 +258,7 @@ public class ClientGUI extends Application {
 			foodButton.setStyle("-fx-background-color: red;");
 		}
 		
+		// when animal category is picked, certain flags are set.
 		animalsButton.setOnAction(e-> {
 			animalsButton.setStyle("-fx-background-color: yellow;");
 			animalsButton.setDisable(true);
@@ -250,7 +270,7 @@ public class ClientGUI extends Application {
 			clientConnection.guessData.catChoice = "animals";
 			clientConnection.send(clientConnection.guessData);
 		});
-		
+		// when city category is picked, certain flags are set.
 		citiesButton.setOnAction(e-> {
 			citiesButton.setStyle("-fx-background-color: yellow;");
 			animalsButton.setDisable(true);
@@ -262,7 +282,7 @@ public class ClientGUI extends Application {
 			clientConnection.guessData.catChoice = "cities";
 			clientConnection.send(clientConnection.guessData);
 		});
-		
+		// when food category is picked, certain flags are set.
 		foodButton.setOnAction(e-> {
 			foodButton.setStyle("-fx-background-color: yellow;");
 			citiesButton.setDisable(true);
@@ -275,6 +295,7 @@ public class ClientGUI extends Application {
 			clientConnection.send(clientConnection.guessData);
 		});
 		
+		// initializing the attempts left for each categories
 		animalsTries = new Text(clientConnection.guessData.animalAttempts + "/3");
 		animalsTries.setStyle("-fx-background-color: white;");
 		animalsTries.setFont(Font.font(20));
@@ -287,6 +308,7 @@ public class ClientGUI extends Application {
 		foodTries.setStyle("-fx-background-color: white;");
 		foodTries.setFont(Font.font(20));
 		
+		// setting up Javafx elements on the game screen and grouping them in orderly manner  
 		Text catText = new Text("Categories:");
 		catText.setFont(Font.font(20));
 		HBox catTextBox = new HBox(catText);
@@ -323,12 +345,14 @@ public class ClientGUI extends Application {
 		HBox letterFields = new HBox(guessLetter, submitLetter);
 		letterFields.setAlignment(Pos.CENTER);
 		
+		// when user guesses a character and hits guess, we get the word from the text field and set flags
 		submitLetter.setOnAction(e-> {
 			clientConnection.guessData.guessLetter = guessLetter.getText().toLowerCase().charAt(0);
 			clientConnection.guessData.isGuessLetter = true;
 			clientConnection.send(clientConnection.guessData);
 		});
 
+		// setting up Javafx elements on the game screen and grouping them in orderly manner 
 		guessWord = new TextField();
 		guessWord.setPromptText("Enter a word");
 		guessWord.setFont(Font.font(15));
@@ -338,12 +362,14 @@ public class ClientGUI extends Application {
 		HBox wordFields = new HBox(guessWord, submitWord);
 		wordFields.setAlignment(Pos.CENTER);
 		
+		// when user guesses a word and hits guess, we get the word from the text field and set flags
 		submitWord.setOnAction(e-> {
 			clientConnection.guessData.guessWord = guessWord.getText().toLowerCase();
 			clientConnection.guessData.isGuessWord = true;
 			clientConnection.send(clientConnection.guessData);
 		});
 		
+		// setting up Javafx elements on the game screen and grouping them in orderly manner 
 		letterGuessLeft = new Text("Letter Guesses Left: 6/6 \t");
 		letterGuessLeft.setFont(Font.font(20));
 		wordGuessLeft = new Text("Word Guesses Left: 3/3");
@@ -357,13 +383,13 @@ public class ClientGUI extends Application {
 		headingBox.setAlignment(Pos.CENTER);
 		headingBox.setPadding(new Insets(0,0,15,0)); 
 
-
 		VBox gameElements = new VBox(headingBox, catNodes, guessTexts, letterFields, wordFields, guessLeft);
 		gameElements.setAlignment(Pos.CENTER);
 		BorderPane bPane = new BorderPane(gameElements);
+		
+		// set background as main.gif
 		Image image1 = new Image("main.gif");
 		BackgroundSize bSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false);
-		
 		bPane.setBackground(new Background(new BackgroundImage(image1,
 	            BackgroundRepeat.NO_REPEAT,
 	            BackgroundRepeat.NO_REPEAT,
@@ -373,15 +399,15 @@ public class ClientGUI extends Application {
 		return new Scene(bPane, 500, 500);
 	}
 	
+	/*returns the winning screen with predetermined settings*/
 	public Scene winScene() {
 		Text message = new Text("Yeppi You Won!!");
 		message.setFont(Font.font("Verdana", FontWeight.BOLD, 30));
-		
 		BorderPane win = new BorderPane(message);
 		
+		// set background as winning.gif
 		Image image1 = new Image("winning.gif");
 		BackgroundSize bSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false);
-		
 		win.setBackground(new Background(new BackgroundImage(image1,
 	            BackgroundRepeat.NO_REPEAT,
 	            BackgroundRepeat.NO_REPEAT,
@@ -391,37 +417,36 @@ public class ClientGUI extends Application {
 		return new Scene(win, 716, 605);
 	}
 	
+	/*returns the losing screen with predetermined settings*/
 	public Scene loseScene() {
 		Text message = new Text("I am sorry! You Lose");
 		message.setFont(Font.font("Verdana", FontWeight.BOLD, 30));
-		
 		BorderPane lose = new BorderPane(message);
 		
+		// set background as losing.gif
 		Image image1 = new Image("losing.gif");
 		BackgroundSize bSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false);
-		
 		lose.setBackground(new Background(new BackgroundImage(image1,
 	            BackgroundRepeat.NO_REPEAT,
 	            BackgroundRepeat.NO_REPEAT,
 	            BackgroundPosition.CENTER,
 	            bSize)));
 		
-		
 		return new Scene(lose, 650, 650);
 	}
 	
+	/*returns the connection fail screen with predetermined settings*/
 	public Scene connectionFailScene() {
 		Text error = new Text("Error connecting to server.");
-		
 		HBox hAlign = new HBox(error);
 		hAlign.setAlignment(Pos.CENTER);
 		VBox vAlign = new VBox(hAlign);
 		vAlign.setAlignment(Pos.CENTER);
-		
 		BorderPane bPane = new BorderPane(vAlign);
+		
+		// set background as sadface.gif
 		Image image1 = new Image("sadface.gif");
 		BackgroundSize bSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false);
-		
 		bPane.setBackground(new Background(new BackgroundImage(image1,
 	            BackgroundRepeat.NO_REPEAT,
 	            BackgroundRepeat.NO_REPEAT,
