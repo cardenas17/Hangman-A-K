@@ -1,3 +1,10 @@
+// Client
+// 		Thread for connecting a client to server 
+// 		Uses SerializableWord for communication
+// Angel Cardenas		651018873		acarde36
+// Kartik Maheshwari	665023848		kmahes5
+//
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -33,6 +40,9 @@ public class Client extends Thread {
 				callback.accept(message);
 			}
 		} catch (Exception t) {
+			SerializableWord message = new SerializableWord();
+			message.isConnectionFail = true;
+			callback.accept(message);
 			System.out.println("Client Connection failed");
 		}
 		

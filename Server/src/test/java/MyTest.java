@@ -13,15 +13,92 @@ import org.junit.jupiter.params.provider.ValueSource;
 class MyTest {
 	
 	@Test
-	void testCGD_Constructor() {
-		ClientGameData temp = new ClientGameData();
-		System.out.println(temp.listMap.get("food").list.toString());
-		System.out.println(temp.listMap.get("food").completeWord.toString());
-		System.out.println(temp.listMap.get("cities").list.toString());
-		System.out.println(temp.listMap.get("cities").completeWord.toString());
-		System.out.println(temp.listMap.get("animals").list.toString());
-		System.out.println(temp.listMap.get("animals").completeWord.toString());
+	void clientGameDataConstructor() {
+		ClientGameData data = new ClientGameData();
+		assertEquals(data.currentCat, "");
+		assertEquals(data.listMap.size(), 3);
+		assertTrue(data.listMap.containsKey("food"));
+		assertTrue(data.listMap.containsKey("cities"));
+		assertTrue(data.listMap.containsKey("animals"));
 	}
 	
-
+	@Test
+	void categorySubclassConstructor1() {
+		ClientGameData data = new ClientGameData();
+		assertFalse(data.listMap.get("animals").isComplete);
+		assertEquals(data.listMap.get("animals").name, "animals");
+		assertEquals(data.listMap.get("animals").completeWord, "");
+		assertEquals(data.listMap.get("animals").partialWord, "");
+	}
+	
+	@Test
+	void categorSubclassConstructor2() {
+		ClientGameData data = new ClientGameData();
+		assertEquals(data.listMap.get("cities").name, "cities");
+		assertEquals(data.listMap.get("cities").totalAttempts, 3);
+		assertEquals(data.listMap.get("cities").charAttempts, 6);
+		assertEquals(data.listMap.get("cities").wordAttempts, 3);
+		assertEquals(data.listMap.get("cities").list.size(), 3);
+	}
+	
+	@Test
+	void returnEmptyWordTest() {
+		ClientGameData data = new ClientGameData();
+		assertEquals(data.returnEmptyWord(6), "------");
+		assertEquals(data.returnEmptyWord(4), "----");
+		assertEquals(data.returnEmptyWord(0), "");
+		
+		String s = "woah, woah";
+		assertEquals(data.returnEmptyWord(s.length()), "----------");
+	}
+	
+	@Test
+	void pickCategoryTest() {
+		ClientGameData data = new ClientGameData();
+		assertTrue(data.pickCategory("animals"));
+		assertNotEquals(data.listMap.get("animals").completeWord, "");
+		assertNotEquals(data.listMap.get("animals").partialWord, "");
+		assertEquals(data.listMap.get("animals").totalAttempts, 2);
+		assertEquals(data.listMap.get("animals").list.size(), 2);
+	}
+	
+	@Test
+	void pickCategoryTest2() {
+		ClientGameData data = new ClientGameData();
+		data.listMap.get("cities").list.clear();
+		assertFalse(data.pickCategory("cities"));
+		assertEquals(data.listMap.get("cities").completeWord, "");
+		assertEquals(data.listMap.get("cities").partialWord, "");
+		assertEquals(data.listMap.get("cities").list.size(), 0);
+	}
+	
+	@Test
+	void checkWordTest() {
+		ClientGameData data = new ClientGameData();
+		assertTrue(data.pickCategory("cities"));
+		assertFalse(data.checkWord("canada"));
+		assertEquals(data.listMap.get("cities").wordAttempts, 2);
+		assertFalse(data.checkWord("us"));
+		assertEquals(data.listMap.get("cities").wordAttempts, 1);
+		assertFalse(data.checkWord("mexico"));
+		assertEquals(data.listMap.get("cities").wordAttempts, 0);
+	}
+	
+	@Test
+	void checkCharacterTest() {
+		ClientGameData data = new ClientGameData();
+		assertTrue(data.pickCategory("food"));
+		assertFalse(data.checkCharacter('z'));
+		assertEquals(data.listMap.get("food").charAttempts, 5);
+		assertFalse(data.checkCharacter('6'));
+		assertEquals(data.listMap.get("food").charAttempts, 4);
+		assertFalse(data.checkCharacter('9'));
+		assertEquals(data.listMap.get("food").charAttempts, 3);
+		assertFalse(data.checkCharacter('4'));
+		assertEquals(data.listMap.get("food").charAttempts, 2);
+		assertFalse(data.checkCharacter('2'));
+		assertEquals(data.listMap.get("food").charAttempts, 1);
+		assertFalse(data.checkCharacter('0'));
+		assertEquals(data.listMap.get("food").charAttempts, 0);
+	}
 }

@@ -1,9 +1,13 @@
-import java.io.Serializable;
-import java.util.function.Consumer;
+// Client GUI
+// 		Thread for connecting a client to server 
+// 		Uses Javafx for the GUI and Client for connection to server
+// Angel Cardenas		651018873		acarde36
+// Kartik Maheshwari	665023848		kmahes5
+//
 
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -11,7 +15,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.Labeled;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.image.Image;
@@ -25,9 +28,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 
 public class ClientGUI extends Application {
 	Stage ourStage;
@@ -36,7 +41,7 @@ public class ClientGUI extends Application {
 	Button animalsButton, citiesButton, foodButton, submitLetter, submitWord;
 	Text animalsTries, citiesTries, foodTries, wordToGuess, letterGuessLeft, wordGuessLeft;
 	TextField guessLetter, guessWord;
-	
+	PauseTransition pause;
 	
 	
 	public static void main(String[] args) {
@@ -60,6 +65,7 @@ public class ClientGUI extends Application {
 		ourStage.setScene(welcomeScene());
 		ourStage.show();
 		
+		pause = new PauseTransition(Duration.seconds(3));
 	}
 	
 	public Scene welcomeScene() {
@@ -103,6 +109,9 @@ public class ClientGUI extends Application {
 			clientConnection = new Client(data->{
 				Platform.runLater(()->{
 					clientConnection.guessData = (SerializableWord) data;
+					if (clientConnection.guessData.isConnectionFail) {
+						ourStage.setScene(connectionFailScene());
+					}
 					// Add parse messages here
 					if (clientConnection.guessData.isCatChoice) {
 						wordToGuess.setText(clientConnection.guessData.serverWord);
@@ -127,35 +136,38 @@ public class ClientGUI extends Application {
 						}
 					}
 					if (!containsDash(wordToGuess.getText())) {
+						pause.play();
 						ourStage.setScene(gameScene());
 					}
 					if (clientConnection.guessData.isAnimalsDone &&
 							clientConnection.guessData.isCitiesDone&&
 							clientConnection.guessData.isFoodDone) {
 						// transition to win
+						pause.play();
 						ourStage.setScene(winScene());
 					}
 					if (clientConnection.guessData.letterGuessesLeft == 0 && clientConnection.guessData.wordGuessesLeft == 0) {
 						// update cat attempts left text
 						// if zero cat attempts left then game over
-						int currentAttemptsLeft = 0;
-						if (clientConnection.guessData.catChoice == "animals") {
+						int currentAttemptsLeft = 3;
+						if (clientConnection.guessData.catChoice.equals("animals")) {
 							currentAttemptsLeft = clientConnection.guessData.animalAttempts;
 							animalsTries.setText(currentAttemptsLeft +"/3");
 						}
-						else if (clientConnection.guessData.catChoice == "cities") {
+						else if (clientConnection.guessData.catChoice.equals("cities")) {
 							currentAttemptsLeft = clientConnection.guessData.citiesAttempts;
 							citiesTries.setText(currentAttemptsLeft +"/3");
 						}
-						else if (clientConnection.guessData.catChoice == "food") {
+						else if (clientConnection.guessData.catChoice.equals("food")) {
 							currentAttemptsLeft = clientConnection.guessData.foodAttempts; 
 							foodTries.setText(currentAttemptsLeft +"/3");
 						}
 						
 						if (currentAttemptsLeft == 0) {
+							pause.play();
 							ourStage.setScene(loseScene());
-						}
-						else {
+						} else {
+							pause.play();
 							ourStage.setScene(gameScene());
 						}
 					}
@@ -182,7 +194,7 @@ public class ClientGUI extends Application {
 		return new Scene(bPane, 730, 411);
 	}
 	
-	private boolean containsDash(String s) {
+	public boolean containsDash(String s) {
 		for (int i = 0; i < s.length(); i++) {
 			int compare = Character.compare(s.charAt(i), '-');
 			if ( compare == 0) {
@@ -191,22 +203,11 @@ public class ClientGUI extends Application {
 		}
 		return false;
 	}
-	
-	public Scene loseScene() {
-		Text message = new Text("I am sorry! You Lose");
-		BorderPane lose = new BorderPane(message);
-		return new Scene(lose, 400,200);
-	}
-	
-	public Scene winScene() {
-		Text message = new Text("Yeppi You Won!!");
-		BorderPane win = new BorderPane(message);
-		return new Scene(win, 400,200);
-	}
-	
-	
 
 	public Scene gameScene() {
+		if (clientConnection.guessData.isConnectionFail) {
+			return connectionFailScene();
+		}
 		animalsButton = new Button("Animals");
 		animalsButton.setFont(Font.font(20));
 		citiesButton = new Button("Cities");
@@ -214,32 +215,61 @@ public class ClientGUI extends Application {
 		foodButton = new Button("Food");
 		foodButton.setFont(Font.font(20));
 		
-		animalsButton.setDisable(clientConnection.guessData.isAnimalsDone);
-		citiesButton.setDisable(clientConnection.guessData.isCitiesDone);
-		foodButton.setDisable(clientConnection.guessData.isFoodDone);
+		if (clientConnection.guessData.isAnimalsDone) {
+			animalsButton.setDisable(true);
+			animalsButton.setStyle("-fx-background-color: green;");
+		} else {
+			animalsButton.setDisable(false);
+			animalsButton.setStyle("-fx-background-color: red;");
+		}
+		
+		if (clientConnection.guessData.isCitiesDone) {
+			citiesButton.setDisable(true);
+			citiesButton.setStyle("-fx-background-color: green;");
+		} else {
+			citiesButton.setDisable(false);
+			citiesButton.setStyle("-fx-background-color: red;");
+		}
+		
+		if (clientConnection.guessData.isFoodDone) {
+			foodButton.setDisable(true);
+			foodButton.setStyle("-fx-background-color: green;");
+		} else {
+			foodButton.setDisable(false);
+			foodButton.setStyle("-fx-background-color: red;");
+		}
 		
 		animalsButton.setOnAction(e-> {
+			animalsButton.setStyle("-fx-background-color: yellow;");
 			animalsButton.setDisable(true);
 			citiesButton.setDisable(true);
 			foodButton.setDisable(true);
+			guessLetter.setDisable(false);
+			guessWord.setDisable(false);
 			clientConnection.guessData.isCatChoice = true;
 			clientConnection.guessData.catChoice = "animals";
 			clientConnection.send(clientConnection.guessData);
 		});
 		
 		citiesButton.setOnAction(e-> {
+			citiesButton.setStyle("-fx-background-color: yellow;");
 			animalsButton.setDisable(true);
 			citiesButton.setDisable(true);
 			foodButton.setDisable(true);
+			guessLetter.setDisable(false);
+			guessWord.setDisable(false);
 			clientConnection.guessData.isCatChoice = true;
 			clientConnection.guessData.catChoice = "cities";
 			clientConnection.send(clientConnection.guessData);
 		});
 		
 		foodButton.setOnAction(e-> {
+			foodButton.setStyle("-fx-background-color: yellow;");
 			citiesButton.setDisable(true);
 			animalsButton.setDisable(true);
 			foodButton.setDisable(true);
+			guessLetter.setDisable(false);
+			guessWord.setDisable(false);
 			clientConnection.guessData.isCatChoice = true;
 			clientConnection.guessData.catChoice = "food";
 			clientConnection.send(clientConnection.guessData);
@@ -294,10 +324,9 @@ public class ClientGUI extends Application {
 		letterFields.setAlignment(Pos.CENTER);
 		
 		submitLetter.setOnAction(e-> {
-			clientConnection.guessData.guessLetter = guessLetter.getText().charAt(0);
+			clientConnection.guessData.guessLetter = guessLetter.getText().toLowerCase().charAt(0);
 			clientConnection.guessData.isGuessLetter = true;
 			clientConnection.send(clientConnection.guessData);
-			guessLetter.clear();
 		});
 
 		guessWord = new TextField();
@@ -310,10 +339,9 @@ public class ClientGUI extends Application {
 		wordFields.setAlignment(Pos.CENTER);
 		
 		submitWord.setOnAction(e-> {
-			clientConnection.guessData.guessWord = guessWord.getText();
+			clientConnection.guessData.guessWord = guessWord.getText().toLowerCase();
 			clientConnection.guessData.isGuessWord = true;
 			clientConnection.send(clientConnection.guessData);
-			guessWord.clear();
 		});
 		
 		letterGuessLeft = new Text("Letter Guesses Left: 6/6 \t");
@@ -343,6 +371,64 @@ public class ClientGUI extends Application {
 	            bSize)));
 		
 		return new Scene(bPane, 500, 500);
+	}
+	
+	public Scene winScene() {
+		Text message = new Text("Yeppi You Won!!");
+		message.setFont(Font.font("Verdana", FontWeight.BOLD, 30));
+		
+		BorderPane win = new BorderPane(message);
+		
+		Image image1 = new Image("winning.gif");
+		BackgroundSize bSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false);
+		
+		win.setBackground(new Background(new BackgroundImage(image1,
+	            BackgroundRepeat.NO_REPEAT,
+	            BackgroundRepeat.NO_REPEAT,
+	            BackgroundPosition.CENTER,
+	            bSize)));
+		
+		return new Scene(win, 716, 605);
+	}
+	
+	public Scene loseScene() {
+		Text message = new Text("I am sorry! You Lose");
+		message.setFont(Font.font("Verdana", FontWeight.BOLD, 30));
+		
+		BorderPane lose = new BorderPane(message);
+		
+		Image image1 = new Image("losing.gif");
+		BackgroundSize bSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false);
+		
+		lose.setBackground(new Background(new BackgroundImage(image1,
+	            BackgroundRepeat.NO_REPEAT,
+	            BackgroundRepeat.NO_REPEAT,
+	            BackgroundPosition.CENTER,
+	            bSize)));
+		
+		
+		return new Scene(lose, 650, 650);
+	}
+	
+	public Scene connectionFailScene() {
+		Text error = new Text("Error connecting to server.");
+		
+		HBox hAlign = new HBox(error);
+		hAlign.setAlignment(Pos.CENTER);
+		VBox vAlign = new VBox(hAlign);
+		vAlign.setAlignment(Pos.CENTER);
+		
+		BorderPane bPane = new BorderPane(vAlign);
+		Image image1 = new Image("sadface.gif");
+		BackgroundSize bSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false);
+		
+		bPane.setBackground(new Background(new BackgroundImage(image1,
+	            BackgroundRepeat.NO_REPEAT,
+	            BackgroundRepeat.NO_REPEAT,
+	            BackgroundPosition.CENTER,
+	            bSize)));
+		
+		return new Scene(bPane, 512, 512);
 	}
 
 }

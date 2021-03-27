@@ -62,7 +62,7 @@ public class ClientGameData {
 		listMap.put("animals", animals);
 	}
 	
-	private String returnEmptyWord(int size) {
+	public String returnEmptyWord(int size) {
 		String temp = "";
 		for (int i = 0; i < size; i++) {
 			temp += "-";
@@ -79,6 +79,8 @@ public class ClientGameData {
 		listMap.get(currentCat).list.remove(0);
 		listMap.get(currentCat).partialWord = returnEmptyWord(listMap.get(currentCat).completeWord.length());
 		listMap.get(currentCat).totalAttempts--;
+		listMap.get(currentCat).wordAttempts = 3;
+		listMap.get(currentCat).charAttempts = 6;
 		return true;
 	}
 	
@@ -112,5 +114,12 @@ public class ClientGameData {
 		}
 		listMap.get(currentCat).partialWord = temp;
 		return true;
+	}
+	
+	public String getWordToGuess() {
+		if (currentCat.equals("")) {
+			return "";
+		}
+		return listMap.get(currentCat).completeWord;
 	}
 }

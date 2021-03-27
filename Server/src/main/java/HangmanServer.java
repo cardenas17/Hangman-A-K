@@ -71,6 +71,7 @@ public class HangmanServer {
 				updatedWord.wordGuessesLeft = gameData.listMap.get(gameData.currentCat).wordAttempts;
 				updatedWord.letterGuessesLeft = gameData.listMap.get(gameData.currentCat).charAttempts;
 			}
+			
 			return updatedWord;
 		}
 		
@@ -96,19 +97,35 @@ public class HangmanServer {
 					SerializableWord curData = (SerializableWord) input.readObject();
 					if (curData.isCatChoice) {
 						clientData.pickCategory(curData.catChoice);
-						callback.accept("Client #" + this.count + " Category Choice is " + curData.catChoice);
-						callback.accept("Client #" + this.count + " Currrent word to guess: " + clientData.listMap.get(curData.catChoice).completeWord);
+						callback.accept("Client #" + this.count + ": Category Choice = " + curData.catChoice);
+						callback.accept("Client #" + this.count + ": Currrent word to guess = " + clientData.listMap.get(curData.catChoice).completeWord);
 					}
 					else if (curData.isGuessLetter) {
 						clientData.checkCharacter(curData.guessLetter);
-						callback.accept("Client #" + this.count + " Guess Letter is " + curData.guessLetter);
+						callback.accept("Client #" + this.count + ": Guess Letter = " + curData.guessLetter);
 					}
 					else if (curData.isGuessWord) {
 						clientData.checkWord(curData.guessWord);
-						callback.accept("Client #" + this.count + " Guess Word is " + curData.guessWord);
+						callback.accept("Client #" + this.count + ": Guess Word = " + curData.guessWord);
 					}
+					
 					curData = updateData(clientData, curData);
-					callback.accept("Client #" + this.count + " Progress on word: " + curData.serverWord);
+					callback.accept("Client #" + this.count + ": Progress on word = " + curData.serverWord);
+					
+					if (!curData.catChoice.equals("")) {
+						if (clientData.listMap.get(curData.catChoice).isComplete) {
+							callback.accept("Client #" + this.count + ": (" + curData.catChoice + ") category is complete!!!");
+						} else if (curData.wordGuessesLeft == 0 && curData.letterGuessesLeft == 0) {
+							callback.accept("Client #" + this.count + ": has failed category (" + curData.catChoice + ")");
+						}
+					}
+					
+					if (curData.isAnimalsDone && curData.isCitiesDone && curData.isFoodDone) {
+						callback.accept("Client #" + this.count + ": Has won the game :)");
+					} else if (curData.animalAttempts == 0 && curData.citiesAttempts == 0 && curData.foodAttempts == 0) {
+						callback.accept("Client #" + this.count + ": failed the game on category (" + curData.catChoice + ")");
+					}
+					
 					updateClient(curData);
 				} catch (Exception e) {
 					callback.accept("OOOOPPs...Something wrong with the socket from client: " + count + "....closing down!");
