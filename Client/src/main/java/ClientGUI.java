@@ -5,6 +5,8 @@
 // Kartik Maheshwari	665023848		kmahes5
 //
 
+import java.util.ArrayList;
+
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -36,13 +38,12 @@ import javafx.util.Duration;
 
 public class ClientGUI extends Application {
 	Client clientConnection;	// initializing a client thread
-	int count = 0;				// counter of the # of clients on the server
 	// Javafx nodes
 	Stage ourStage;				// hold current stage to be displayed
 	Button animalsButton, citiesButton, foodButton, submitLetter, submitWord;					// all the buttons on the client game screen
 	Text animalsTries, citiesTries, foodTries, wordToGuess, letterGuessLeft, wordGuessLeft;		// all the text on the client game screen
 	TextField guessLetter, guessWord;		// all the text boxes on the client game screen.
-	PauseTransition pause;					// initialized for having a pause after each lose/win
+	PauseTransition pause;	// initialized for having a pause after each lose/win
 	
 	
 	public static void main(String[] args) {
@@ -61,11 +62,10 @@ public class ClientGUI extends Application {
             }
         });
 		ourStage.setTitle("Welcome to Hangman Client");
+		pause = new PauseTransition(Duration.seconds(2));
 				
 		ourStage.setScene(welcomeScene());
 		ourStage.show();
-		
-		pause = new PauseTransition(Duration.seconds(3));
 	}
 	
 	/*returns the welcome screen with predetermined settings*/
@@ -113,20 +113,37 @@ public class ClientGUI extends Application {
 			clientConnection = new Client(data->{
 				Platform.runLater(()->{
 					clientConnection.guessData = (SerializableWord) data;
+					if (clientConnection.guessData.isReplay) {
+						clientConnection.guessData.isReplay = false;
+						ourStage.setScene(gameScene());
+					}
 					// when client inputs an incorrect port number
 					if (clientConnection.guessData.isConnectionFail) {
 						ourStage.setScene(connectionFailScene());
 					}
 					// when client picks a category
 					if (clientConnection.guessData.isCatChoice) {
-						wordToGuess.setText(clientConnection.guessData.serverWord);
+						if (clientConnection.guessData.catChoice.equals("animals")) {
+							animalsTries.setText(clientConnection.guessData.animalAttempts +"/3");
+						}
+						else if (clientConnection.guessData.catChoice.equals("cities")) {
+							citiesTries.setText(clientConnection.guessData.citiesAttempts +"/3");
+						}
+						else if (clientConnection.guessData.catChoice.equals("food")) {
+							foodTries.setText(clientConnection.guessData.foodAttempts +"/3");
+						}
+						
+						wordToGuess.setText(emptyWord(clientConnection.guessData.wordSize));
 						submitLetter.setDisable(false);
 						submitWord.setDisable(false);
 						clientConnection.guessData.isCatChoice = false;
 					}
 					// when client guesses a letter
 					else if (clientConnection.guessData.isGuessLetter) {
-						wordToGuess.setText(clientConnection.guessData.serverWord);
+						if (clientConnection.guessData.isLetterCorrect) {
+							wordToGuess.setText(updateWord(clientConnection.guessData.guessLetter, clientConnection.guessData.letterPositions));
+							clientConnection.guessData.isLetterCorrect = false;
+						}
 						clientConnection.guessData.isGuessLetter = false;
 						letterGuessLeft.setText("Letter Guesses Left: " + clientConnection.guessData.letterGuessesLeft + "/6 \t");
 						// when client is out of letter guesses for the current word
@@ -136,7 +153,10 @@ public class ClientGUI extends Application {
 					}
 					// when client guesses a word
 					else if (clientConnection.guessData.isGuessWord) {
-						wordToGuess.setText(clientConnection.guessData.serverWord);
+						if (clientConnection.guessData.isWordCorrect) {
+							wordToGuess.setText(clientConnection.guessData.guessWord);
+							clientConnection.guessData.isWordCorrect = false;
+						}
 						wordGuessLeft.setText("Word Guesses Left: " + clientConnection.guessData.wordGuessesLeft + "/3");
 						clientConnection.guessData.isGuessWord = false;
 						// when client is out of word guesses for the current word
@@ -144,18 +164,34 @@ public class ClientGUI extends Application {
 							submitWord.setDisable(true);
 						}
 					}
-					// when client is out of all the guesses, game gets "reset"
+					// when client finished the word, the game gets updated
 					if (!containsDash(wordToGuess.getText())) {
+						submitLetter.setDisable(true);
+						submitWord.setDisable(true);
+						
+						pause.setOnFinished(t-> {
+							wordToGuess.setText(wordToGuess.getText());
+							ourStage.setScene(gameScene());
+							submitLetter.setDisable(false);
+							submitWord.setDisable(false);
+						});
 						pause.play();
-						ourStage.setScene(gameScene());
 					}
 					// when all three categories words are solved, we go to the win screen
 					if (clientConnection.guessData.isAnimalsDone &&
 							clientConnection.guessData.isCitiesDone&&
 							clientConnection.guessData.isFoodDone) {
 						// transition to win
+						submitLetter.setDisable(true);
+						submitWord.setDisable(true);
+						
+						pause.setOnFinished(t-> {
+							wordToGuess.setText(wordToGuess.getText());
+							ourStage.setScene(winScene());
+							submitLetter.setDisable(false);
+							submitWord.setDisable(false);
+						});
 						pause.play();
-						ourStage.setScene(winScene());
 					}
 					// when client runs out of guesses for the current word
 					if (clientConnection.guessData.letterGuessesLeft == 0 && clientConnection.guessData.wordGuessesLeft == 0) {
@@ -175,11 +211,26 @@ public class ClientGUI extends Application {
 						}
 						// if zero category attempts left then game over
 						if (currentAttemptsLeft == 0) {
+							submitLetter.setDisable(true);
+							submitWord.setDisable(true);
+							
+							pause.setOnFinished(t-> {
+								ourStage.setScene(loseScene());
+								submitLetter.setDisable(false);
+								submitWord.setDisable(false);
+							});
 							pause.play();
-							ourStage.setScene(loseScene());
 						} else {
+							submitLetter.setDisable(true);
+							submitWord.setDisable(true);
+							
+							pause.setOnFinished(t-> {
+								submitLetter.setDisable(false);
+								submitWord.setDisable(false);
+								wordToGuess.setText(wordToGuess.getText());
+								ourStage.setScene(gameScene());
+							});
 							pause.play();
-							ourStage.setScene(gameScene());
 						}
 					}
 				});
@@ -216,6 +267,34 @@ public class ClientGUI extends Application {
 			}
 		}
 		return false;
+	}
+	
+	public String emptyWord(int size) {
+		String empty = "";
+		for (int i = 0; i < size; i++) {
+			empty += "-";
+		}
+		return empty;
+	}
+	
+	public String updateWord(char c, ArrayList<Integer> ints) {
+		String newWord = "";
+		int j = 0;
+		
+		for (int i = 0; i < wordToGuess.getText().length(); i++) {
+			if (j < ints.size()) {
+				if (i == ints.get(j)) {
+					newWord += c;
+					j++;
+				} else {
+					newWord += wordToGuess.getText().charAt(i);
+				}
+			} else {
+				newWord += wordToGuess.getText().charAt(i);
+			}
+		}
+		
+		return newWord;
 	}
 
 	/*returns the game screen with predetermined settings*/
@@ -347,7 +426,11 @@ public class ClientGUI extends Application {
 		
 		// when user guesses a character and hits guess, we get the word from the text field and set flags
 		submitLetter.setOnAction(e-> {
-			clientConnection.guessData.guessLetter = guessLetter.getText().toLowerCase().charAt(0);
+			if (guessLetter.getText().equals("")) {
+				clientConnection.guessData.guessLetter = '\0';
+			} else {
+				clientConnection.guessData.guessLetter = guessLetter.getText().toLowerCase().charAt(0);
+			}
 			clientConnection.guessData.isGuessLetter = true;
 			clientConnection.send(clientConnection.guessData);
 		});
@@ -403,7 +486,28 @@ public class ClientGUI extends Application {
 	public Scene winScene() {
 		Text message = new Text("Yeppi You Won!!");
 		message.setFont(Font.font("Verdana", FontWeight.BOLD, 30));
-		BorderPane win = new BorderPane(message);
+		
+		Button replay = new Button("Replay?");
+		Button quit = new Button("Quit.");
+		
+		replay.setOnAction(e-> {
+			clientConnection.guessData.isReplay = true;
+			clientConnection.send(clientConnection.guessData);
+		});
+		
+		quit.setOnAction(e-> {
+			Platform.exit();
+            System.exit(0);
+			ourStage.close();
+		});
+		
+		HBox options = new HBox(replay, quit);
+		options.setAlignment(Pos.CENTER);
+		
+		VBox alignment = new VBox(message, options);
+		alignment.setAlignment(Pos.CENTER);
+		
+		BorderPane win = new BorderPane(alignment);
 		
 		// set background as winning.gif
 		Image image1 = new Image("winning.gif");
@@ -421,7 +525,28 @@ public class ClientGUI extends Application {
 	public Scene loseScene() {
 		Text message = new Text("I am sorry! You Lose");
 		message.setFont(Font.font("Verdana", FontWeight.BOLD, 30));
-		BorderPane lose = new BorderPane(message);
+		
+		Button replay = new Button("Replay?");
+		Button quit = new Button("Quit.");
+		
+		replay.setOnAction(e-> {
+			clientConnection.guessData.isReplay = true;
+			clientConnection.send(clientConnection.guessData);
+		});
+		
+		quit.setOnAction(e-> {
+			Platform.exit();
+            System.exit(0);
+			ourStage.close();
+		});
+		
+		HBox options = new HBox(replay, quit);
+		options.setAlignment(Pos.CENTER);
+		
+		VBox alignment = new VBox(message, options);
+		alignment.setAlignment(Pos.CENTER);
+		
+		BorderPane lose = new BorderPane(alignment);
 		
 		// set background as losing.gif
 		Image image1 = new Image("losing.gif");

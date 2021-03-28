@@ -24,7 +24,11 @@ public class ClientGameData {
 		public int charAttempts;		// total letter attempts for a word
 		public int wordAttempts;		// total word attempts for a word
 		public String completeWord;		// the word that the client have to guess
-		public String partialWord;		// Partially guessed word by the client 
+		public String partialWord;		// Partially guessed word by the client
+		
+		public ArrayList<Integer> charPositions;
+		public boolean isGuessCharCorrect;
+		public boolean isGuessWordCorrect;
 		
 		/*Constructor that sets all the fields to default*/
 		Category(String n, ArrayList<String> l){
@@ -36,6 +40,9 @@ public class ClientGameData {
 			wordAttempts = 3;
 			completeWord = "";
 			partialWord = "";
+			
+			charPositions = new ArrayList<Integer>();
+			isGuessCharCorrect = isGuessWordCorrect = false;
 		}
 	}
 	
@@ -107,8 +114,10 @@ public class ClientGameData {
 		if(checkWord.equals(listMap.get(currentCat).completeWord)) {
 			listMap.get(currentCat).isComplete = true;
 			listMap.get(currentCat).partialWord = listMap.get(currentCat).completeWord;
+			listMap.get(currentCat).isGuessWordCorrect = true;
 			return true;
 		} else {
+			listMap.get(currentCat).isGuessWordCorrect = false;
 			listMap.get(currentCat).wordAttempts--;
 			return false;
 		}
@@ -117,10 +126,13 @@ public class ClientGameData {
 	/*Function that finds the character that the client guessed and checks if exists in the current word that is to be guessed*/
 	public boolean checkCharacter(char letter) {
 		String temp = "";
+		ArrayList<Integer> pos = new ArrayList<Integer>();
+		
 		for (int i = 0; i < listMap.get(currentCat).completeWord.length(); i++){
 		    char c = listMap.get(currentCat).completeWord.charAt(i);
 		    if (c == letter) {
 		    	temp += c;
+		    	pos.add(i);
 		    } else {
 		    	temp += listMap.get(currentCat).partialWord.charAt(i);
 		    }
@@ -128,20 +140,16 @@ public class ClientGameData {
 		// setting up the flags accordingly
 		if (temp.equals(listMap.get(currentCat).partialWord)) {
 			listMap.get(currentCat).charAttempts--;
+			listMap.get(currentCat).isGuessCharCorrect = false;
+			listMap.get(currentCat).charPositions = pos;
 			return false;
 		}
 		if (temp.equals(listMap.get(currentCat).completeWord)) {
 			listMap.get(currentCat).isComplete = true;
 		}
 		listMap.get(currentCat).partialWord = temp;
+		listMap.get(currentCat).isGuessCharCorrect = true;
+		listMap.get(currentCat).charPositions = pos;
 		return true;
-	}
-	
-	/*Getter that gets the current word that is to be guessed*/
-	public String getWordToGuess() {
-		if (currentCat.equals("")) {
-			return "";
-		}
-		return listMap.get(currentCat).completeWord;
 	}
 }

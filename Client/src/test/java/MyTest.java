@@ -8,7 +8,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class MyTest {
-
+	
+	// test containsDash() from ClientGUI
 	@Test
 	void containsDashTest() {
 		ClientGUI noGUI = new ClientGUI();
@@ -16,6 +17,7 @@ class MyTest {
 		assertTrue(noGUI.containsDash("Yes-Dash"));
 	}
 	
+	// test the serializableWord constructor
 	@Test
 	void serializableWordTest() {
 		SerializableWord sw = new SerializableWord();
@@ -25,7 +27,6 @@ class MyTest {
 		assertEquals(sw.citiesAttempts, sw.foodAttempts);
 		assertEquals(sw.foodAttempts, 3);
 		
-		assertEquals(sw.serverWord, sw.guessWord);
 		assertEquals(sw.guessWord, "");
 		
 		assertEquals(sw.guessLetter, '\0');

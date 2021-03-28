@@ -47,19 +47,22 @@ public class HangmanServer {
 	}
 
 	/*Nested client thread*/
+	/*Created for each client that connects*/
 	public class ClientThread extends Thread {
-		Socket connection;
-		int count;
-		ClientGameData clientData;
-		ObjectInputStream input;
-		ObjectOutputStream output;
+		Socket connection;			// socket from which to connect to client
+		int count;					// unique client number
+		ClientGameData clientData;	// data stored for current game state
+		ObjectInputStream input;	// incoming SerializableWord
+		ObjectOutputStream output;	// outgoing SerializableWord
 		
+		/*creates a client thread on the specified socket with specified count*/
 		public ClientThread (Socket s, int c) {
 			this.connection = s;
 			this.count = c;
 			this.clientData = new ClientGameData();
 		}
 		
+		/*copies data from current game state to a SerializableWord for updating client*/
 		public SerializableWord updateData(ClientGameData gameData, SerializableWord oldWord) {
 			SerializableWord updatedWord = oldWord;
 			updatedWord.catChoice = gameData.currentCat;
@@ -72,15 +75,22 @@ public class HangmanServer {
 			updatedWord.isCitiesDone = gameData.listMap.get("cities").isComplete;
 			updatedWord.isFoodDone = gameData.listMap.get("food").isComplete;
 			
+			// only copies category data if a category was picked
 			if (gameData.currentCat != "") {
-				updatedWord.serverWord = gameData.listMap.get(gameData.currentCat).partialWord;
-				updatedWord.wordGuessesLeft = gameData.listMap.get(gameData.currentCat).wordAttempts;
+				updatedWord.isLetterCorrect = gameData.listMap.get(gameData.currentCat).isGuessCharCorrect;
+				updatedWord.letterPositions = gameData.listMap.get(gameData.currentCat).charPositions;
 				updatedWord.letterGuessesLeft = gameData.listMap.get(gameData.currentCat).charAttempts;
+				
+				updatedWord.isWordCorrect = gameData.listMap.get(gameData.currentCat).isGuessWordCorrect;
+				updatedWord.wordGuessesLeft = gameData.listMap.get(gameData.currentCat).wordAttempts;
+				
+				updatedWord.wordSize = gameData.listMap.get(gameData.currentCat).completeWord.length();
 			}
 			
 			return updatedWord;
 		}
 		
+		/*sends client an updated SerializableWord*/
 		public void updateClient(SerializableWord data) {
 			try {
 				this.output.writeObject(data);
@@ -89,6 +99,7 @@ public class HangmanServer {
 			}
 		}
 		
+		/*called when the client thread is started*/
 		public void run() {
 			try {
 				input = new ObjectInputStream(connection.getInputStream());
@@ -98,9 +109,17 @@ public class HangmanServer {
 				callback.accept("Stream not open");
 			}
 			
+			// runs until client disconnects
 			while (true) {
 				try {
+					// blocking call waits for incoming data from client
 					SerializableWord curData = (SerializableWord) input.readObject();
+					if (curData.isReplay) {
+						callback.accept("Client #" + this.count + ": Reset the game");
+						clientData = new ClientGameData();
+						curData = updateData(clientData, curData);
+					}
+					// performs game logic based on client action flags
 					if (curData.isCatChoice) {
 						clientData.pickCategory(curData.catChoice);
 						callback.accept("Client #" + this.count + ": Category Choice = " + curData.catChoice);
@@ -115,10 +134,14 @@ public class HangmanServer {
 						callback.accept("Client #" + this.count + ": Guess Word = " + curData.guessWord);
 					}
 					
+					// updates client data
 					curData = updateData(clientData, curData);
-					callback.accept("Client #" + this.count + ": Progress on word = " + curData.serverWord);
 					
+					// logs category success
 					if (!curData.catChoice.equals("")) {
+						// logs client progress to the server
+						callback.accept("Client #" + this.count + ": Progress on word = " + clientData.listMap.get(curData.catChoice).partialWord);
+						
 						if (clientData.listMap.get(curData.catChoice).isComplete) {
 							callback.accept("Client #" + this.count + ": (" + curData.catChoice + ") category is complete!!!");
 						} else if (curData.wordGuessesLeft == 0 && curData.letterGuessesLeft == 0) {
@@ -126,12 +149,18 @@ public class HangmanServer {
 						}
 					}
 					
+					// logs game success
 					if (curData.isAnimalsDone && curData.isCitiesDone && curData.isFoodDone) {
 						callback.accept("Client #" + this.count + ": Has won the game :)");
-					} else if (curData.animalAttempts == 0 && curData.citiesAttempts == 0 && curData.foodAttempts == 0) {
-						callback.accept("Client #" + this.count + ": failed the game on category (" + curData.catChoice + ")");
+					} else if ( ((curData.animalAttempts == 0) && (!(curData.isAnimalsDone))) || 
+							    ((curData.citiesAttempts == 0) && (!(curData.isCitiesDone))) || 
+							    ((curData.foodAttempts == 0) && (!(curData.isFoodDone))) ) {
+						if ((curData.letterGuessesLeft == 0) && (curData.wordGuessesLeft == 0)) {
+							callback.accept("Client #" + this.count + ": failed the game on category (" + curData.catChoice + ")");
+						}
 					}
 					
+					// send updated data to client
 					updateClient(curData);
 				} catch (Exception e) {
 					callback.accept("OOOOPPs...Something wrong with the socket from client: " + count + "....closing down!");
@@ -139,7 +168,7 @@ public class HangmanServer {
 			    	break;
 				}
 			}
+			
 		}  // end of run
-		
-	}
-}
+	} // end of ClientThread
+} // end of HangmanServer

@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 class MyTest {
 	
+	// test the ClientGameData constructor
 	@Test
 	void clientGameDataConstructor() {
 		ClientGameData data = new ClientGameData();
@@ -22,6 +23,7 @@ class MyTest {
 		assertTrue(data.listMap.containsKey("animals"));
 	}
 	
+	// further test the ClientGameData constructor
 	@Test
 	void categorySubclassConstructor1() {
 		ClientGameData data = new ClientGameData();
@@ -31,6 +33,7 @@ class MyTest {
 		assertEquals(data.listMap.get("animals").partialWord, "");
 	}
 	
+	// test the inner class Category from ClientGameData class
 	@Test
 	void categorSubclassConstructor2() {
 		ClientGameData data = new ClientGameData();
@@ -41,6 +44,8 @@ class MyTest {
 		assertEquals(data.listMap.get("cities").list.size(), 3);
 	}
 	
+	
+	// test returnEmptyWord() from ClientGameData class
 	@Test
 	void returnEmptyWordTest() {
 		ClientGameData data = new ClientGameData();
@@ -52,6 +57,7 @@ class MyTest {
 		assertEquals(data.returnEmptyWord(s.length()), "----------");
 	}
 	
+	// test pickCategory() from ClientGameData class
 	@Test
 	void pickCategoryTest() {
 		ClientGameData data = new ClientGameData();
@@ -62,6 +68,7 @@ class MyTest {
 		assertEquals(data.listMap.get("animals").list.size(), 2);
 	}
 	
+	// further test pickCategory() from ClientGameData class
 	@Test
 	void pickCategoryTest2() {
 		ClientGameData data = new ClientGameData();
@@ -72,6 +79,7 @@ class MyTest {
 		assertEquals(data.listMap.get("cities").list.size(), 0);
 	}
 	
+	// test checkWord() from ClientGameData class
 	@Test
 	void checkWordTest() {
 		ClientGameData data = new ClientGameData();
@@ -84,6 +92,7 @@ class MyTest {
 		assertEquals(data.listMap.get("cities").wordAttempts, 0);
 	}
 	
+	// test checkCharacter() from ClientGameData class
 	@Test
 	void checkCharacterTest() {
 		ClientGameData data = new ClientGameData();
