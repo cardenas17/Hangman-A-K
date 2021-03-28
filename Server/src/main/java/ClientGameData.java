@@ -26,9 +26,9 @@ public class ClientGameData {
 		public String completeWord;		// the word that the client have to guess
 		public String partialWord;		// Partially guessed word by the client
 		
-		public ArrayList<Integer> charPositions;
-		public boolean isGuessCharCorrect;
-		public boolean isGuessWordCorrect;
+		public ArrayList<Integer> charPositions;	// array holding the correct letters position in the word
+		public boolean isGuessCharCorrect;			// flag for if letter guessed was correct
+		public boolean isGuessWordCorrect;			// flag for if word guessed was correct
 		
 		/*Constructor that sets all the fields to default*/
 		Category(String n, ArrayList<String> l){

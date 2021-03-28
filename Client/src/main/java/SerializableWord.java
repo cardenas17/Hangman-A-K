@@ -32,12 +32,12 @@ public class SerializableWord implements Serializable {
 	public boolean isGuessLetter;	// flag for guessing a letter
 	public boolean isGuessWord;		// flag for guessing a word
 	
-	public boolean isLetterCorrect;
-	public boolean isWordCorrect;
+	public boolean isLetterCorrect;		// flag to tell the client if the letter guessed was correct
+	public boolean isWordCorrect;		// flag to tell the client if the word guessed was correct
 	
-	public ArrayList<Integer> letterPositions;
+	public ArrayList<Integer> letterPositions;		// array that holds the index value of the correct characters guessed
 	
-	public boolean isReplay;
+	public boolean isReplay;			// flag that lets the server know to set everything to default on the client thread
 	public boolean isConnectionFail;	// flag for a connection error on the client
 	
 	// default constructor for starting a game

@@ -269,6 +269,7 @@ public class ClientGUI extends Application {
 		return false;
 	}
 	
+	/*Helper function that creates a string of empty words i.e. "-"*/
 	public String emptyWord(int size) {
 		String empty = "";
 		for (int i = 0; i < size; i++) {
@@ -277,6 +278,7 @@ public class ClientGUI extends Application {
 		return empty;
 	}
 	
+	/*Helper function that changes wordToGuess according to user guesses*/
 	public String updateWord(char c, ArrayList<Integer> ints) {
 		String newWord = "";
 		int j = 0;
