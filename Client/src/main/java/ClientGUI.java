@@ -402,10 +402,13 @@ public class ClientGUI extends Application {
 		labels.setAlignment(Pos.CENTER);
 		VBox animalsNodes = new VBox(animalsButton, animalsTries);
 		animalsNodes.setAlignment(Pos.CENTER);
+		animalsNodes.setPadding(new Insets(0,5,0,5));
 		VBox citiesNodes = new VBox(citiesButton, citiesTries);
 		citiesNodes.setAlignment(Pos.CENTER);
+		citiesNodes.setPadding(new Insets(0,5,0,5));
 		VBox foodNodes = new VBox(foodButton, foodTries);
 		foodNodes.setAlignment(Pos.CENTER);
+		foodNodes.setPadding(new Insets(0,5,0,5));
 		
 		HBox catNodes = new HBox(labels, animalsNodes, citiesNodes, foodNodes);
 		catNodes.setAlignment(Pos.CENTER);
@@ -492,6 +495,9 @@ public class ClientGUI extends Application {
 		Button replay = new Button("Replay?");
 		Button quit = new Button("Quit.");
 		
+		replay.setPadding(new Insets(5,5,5,5));
+		quit.setPadding(new Insets(5,5,5,5));
+		
 		replay.setOnAction(e-> {
 			clientConnection.guessData.isReplay = true;
 			clientConnection.send(clientConnection.guessData);
@@ -530,6 +536,9 @@ public class ClientGUI extends Application {
 		
 		Button replay = new Button("Replay?");
 		Button quit = new Button("Quit.");
+		
+		replay.setPadding(new Insets(5,5,5,5));
+		quit.setPadding(new Insets(5,5,5,5));
 		
 		replay.setOnAction(e-> {
 			clientConnection.guessData.isReplay = true;
